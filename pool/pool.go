@@ -27,9 +27,18 @@ type GoPool struct {
 }
 
 
-func NewPool() *GoPool{
-	return &GoPool{
+func NewPool(routines int64, duration time.Duration) *GoPool{
+	pool := &GoPool{
+		kill: make(chan struct{}),
+		shutdown: make(chan struct{}),
+		addRoutine: make(chan struct{}),
+		removeRoutine: make(chan struct{}),
+		tasks: make(chan Worker),
+		timeDisplay: duration,
 	}
+	pool.manager()
+	pool.Add(int(routines))
+	return pool
 }
 
 func(gp *GoPool) work(){
@@ -41,6 +50,7 @@ done:
 			t.Work()
 			atomic.AddInt64(&gp.active, -1)
 		case <- gp.kill:
+			log.Info.Println("shut down routine")
 			break done
 		}
 	}
@@ -50,6 +60,10 @@ done:
 
 func(gp *GoPool) Shutdown() {
 	close(gp.shutdown)
+	gp.wg.Wait()
+}
+
+func(gp *GoPool) RunTillRoutineShut(){
 	gp.wg.Wait()
 }
 
@@ -85,14 +99,16 @@ func(gp *GoPool) manager(){
 			return
 		
 		case <- gp.addRoutine:
+			gp.wg.Add(1)
 			atomic.AddInt64(&gp.routines, 1)
 			go gp.work()
 		case <- gp.removeRoutine:	
 			atomic.AddInt64(&gp.routines, -1)
 			gp.kill <- struct{}{}
 		case <- timer.C:
+			routines := atomic.LoadInt64(&gp.routines)
 			log.Info.Println(fmt.Sprintf(
-				"pool status total routines %v ,active routines %v, pending routines %v", gp.routines, gp.active, gp.pending))
+				"pool status, total routines %v ,active routines %v, pending routines %v", routines, gp.active, gp.pending))
 			timer.Reset(gp.timeDisplay)
 		}
 	}
