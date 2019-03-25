@@ -1,12 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"io/ioutil"
 	"bytes"
-
-	"github.com/yqh231/Urezin/log"
 	"encoding/json"
+	"github.com/yqh231/Urezin/log"
+	"io/ioutil"
+	"net/http"
 )
 
 
@@ -14,18 +13,42 @@ type RequestCompose struct {
 	request *http.Request
 }
 
-func New(method, url string, values interface{}) *RequestCompose{
-	params , err := json.Marshal(values)
-	if err != nil{
-		log.Error.Println(err.Error())
-		return nil
+func NewReqCompose(method, url string, values interface{}) *RequestCompose{
+	var params []byte
+	var err error
+	if method != "GET" && method != "DELETE"{
+		if values != nil{
+			params , err = json.Marshal(values)
+			if err != nil{
+				log.Error.Println(err.Error())
+				return nil
+			}
+		}else{
+			params = nil
+		}
+
+		req, er := 	http.NewRequest(method, url, bytes.NewBuffer(params))
+		if er != nil{
+			log.Error.Println(er.Error())
+			return nil
+		}
+		return &RequestCompose{
+			req,
+		}
+
 	}
 
-	req, er := 	http.NewRequest(method, url, bytes.NewBuffer(params))
+	req, er := 	http.NewRequest(method, url, nil)
 	if er != nil{
 		log.Error.Println(er.Error())
 		return nil
 	}
+
+	q := req.URL.Query()
+	for k, v := range values.(map[string]string){
+		q.Add(k, v)
+	}
+	req.URL.RawQuery = q.Encode()
 
 	return &RequestCompose{
 		req,
