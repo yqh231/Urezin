@@ -35,7 +35,7 @@ func(hy *HuoYunCli) Login(name, password string){
 	})
 	resp, err := hy.client.Do(reqCompose.GetReq())
 	if err != nil{
-		log.Error.Panicln(err.Error())
+		log.Error.Println(err.Error())
 		return
 	}
 	if resp != nil {

@@ -23,8 +23,6 @@ func NewReqCompose(method, url string, values interface{}) *RequestCompose{
 				log.Error.Println(err.Error())
 				return nil
 			}
-		}else{
-			params = nil
 		}
 
 		req, er := 	http.NewRequest(method, url, bytes.NewBuffer(params))
