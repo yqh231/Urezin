@@ -46,7 +46,7 @@ func(hy *HuoYunCli) Login(name, password string){
 	reqCompose.ResHandel(resp, &res)
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0"{
-		log.Error.Println("login huo yun fail, details is %v", stringSlice[1])
+		log.Error.Printf("login huo yun fail, details is %v", stringSlice[1])
 	}
 	hy.token = stringSlice[1]
 
@@ -80,7 +80,7 @@ func(hy *HuoYunCli) GetPhone(sid, phone string) string{
 	reqCompose.ResHandel(resp, &res)
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0"{
-		log.Error.Println("huo yun get phone fail, details is %v", stringSlice[1])
+		log.Error.Printf("huo yun get phone fail, details is %v", stringSlice[1])
 	}
 	return stringSlice[1]
 }
@@ -114,7 +114,7 @@ func(hy *HuoYunCli) GetMessage(sid, phone, author string) string{
 	reqCompose.ResHandel(resp, &res)
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0"{
-		log.Error.Println("huo yun get message fail, details is %v", stringSlice[1])
+		log.Error.Printf("huo yun get message fail, details is %v", stringSlice[1])
 		hy.GetMessage(sid, phone, author)
 		time.Sleep(3 * time.Second)
 	}
