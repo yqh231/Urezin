@@ -1,3 +1,3 @@
 # Urezin
 
-Urezin is high effciency spider system.
+Urezin is high efficiency spider system.
