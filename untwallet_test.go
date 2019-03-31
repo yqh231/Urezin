@@ -1,11 +1,11 @@
 package main
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
-func TestUntWallet(t *testing.T){
+func TestUntWallet(t *testing.T) {
 	wallet := UntWallet{}
 	wallet.GetToken()
 	fmt.Println(wallet.token)

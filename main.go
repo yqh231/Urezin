@@ -1,9 +1,32 @@
 package main
 
-import "github.com/yqh231/Urezin/pool"
+import "encoding/json"
+import "fmt"
 
-var Pool *pool.GoPool
+func test(v interface{}) {
+	json.Unmarshal([]byte(`{"test": 4}`), v)
+}
 
-func main(){
-	
+func test2(v *string) {
+	//a := "abc"
+	*v = "abc"
+}
+
+type ruby struct {
+	lang string
+}
+
+func test3(v *ruby) {
+	n := ruby{
+		"ruby",
+	}
+	v = &n
+}
+
+func main() {
+	v1 := ruby{
+		"en",
+	}
+	test3(&v1)
+	fmt.Println(v1)
 }
