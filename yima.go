@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/yqh231/Urezin/log"
 )
@@ -80,10 +81,10 @@ func (ym *YiMaCli) GetPhone(itemId, phone string) string {
 
 }
 
-func (ym *YiMaCli) GetMessage(mobile, itemId, ifRelease, callNum int) string {
+func (ym *YiMaCli) GetMessage(mobile, itemId, ifRelease string, callNum int) string {
 	var res string
 
-	reqCompose := NewReqCompose("GET", ym.url, map[string]interface{}{
+	reqCompose := NewReqCompose("GET", ym.url, map[string]string{
 		"action":  "getsms",
 		"token":   ym.token,
 		"itemid":  itemId,
@@ -101,7 +102,8 @@ func (ym *YiMaCli) GetMessage(mobile, itemId, ifRelease, callNum int) string {
 
 	reqCompose.ResHandle(resp, &res)
 	stringSlice := strings.Split(res, "|")
-	if stringSlice[0] == "0" && callNum < 20 {
+	fmt.Println(res)
+	if !strings.HasPrefix(res, "success") && callNum < 20 {
 		log.Error.Printf("yi ma get message fail, details is %v", stringSlice[1])
 		ym.GetMessage(mobile, itemId, ifRelease, callNum+1)
 		time.Sleep(5 * time.Second)

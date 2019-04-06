@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/yqh231/Urezin/log"
 )
@@ -17,22 +18,9 @@ type RequestCompose struct {
 }
 
 func NewReqCompose(method, url string, values interface{}) *RequestCompose {
-	var params []byte
-	var err error
-	if method != "GET" && method != "DELETE" {
-		if values != nil {
-			params, err = json.Marshal(values)
-			if err != nil {
-				log.Error.Println(err.Error())
-				return nil
-			}
-		}
 
-		req, er := http.NewRequest(method, url, bytes.NewBuffer(params))
-		if er != nil {
-			log.Error.Println(er.Error())
-			return nil
-		}
+	if method != "GET" && method != "DELETE" {
+		req, _ := http.NewRequest(method, url, strings.NewReader(values.(string)))
 		return &RequestCompose{
 			req,
 		}
@@ -63,6 +51,10 @@ func (r *RequestCompose) SetHeader(headers map[string]string) {
 	for k, v := range headers {
 		r.request.Header.Add(k, v)
 	}
+	r.request.Header.Add("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Mobile Safari/537.36")
+	r.request.Header.Add("Refer", "http://untwallet.com/account/sign_in")
+	r.request.Header.Add("Host", "untwallet.com")
+	r.request.Header.Add("Accept", "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01")
 }
 
 func (r *RequestCompose) ResHandle(res *http.Response, data interface{}) {
@@ -73,7 +65,6 @@ func (r *RequestCompose) ResHandle(res *http.Response, data interface{}) {
 	}
 	err = json.Unmarshal(body, data)
 	if err != nil {
-		log.Error.Println(err.Error())
 		switch t := data.(type) {
 		case *string:
 			*t = string(body)

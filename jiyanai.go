@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/yqh231/Urezin/log"
 )
@@ -33,14 +34,19 @@ func NewJiYan() *JiYanAi {
 		"yqh231",
 		"2316678",
 		"http://aiapi.c2567.com/api/create",
-		&http.Client{},
+		&http.Client{
+			Timeout: 60 * time.Second,
+		},
 		"60",
 	}
 }
 
-func (jy JiYanAi) GetPicture(url string) *[]byte {
+func (jy JiYanAi) GetPicture(url string, headers map[string]string) *[]byte {
 	var res []byte
 	req := NewReqCompose("GET", url, nil)
+	if headers != nil{
+		req.SetHeader(headers)
+	}
 	resp, err := jy.client.Do(req.GetReq())
 	if err != nil {
 		log.Error.Println(err.Error())
@@ -70,7 +76,7 @@ func (jy JiYanAi) Distinguish(file *[]byte, typeId string) string {
 		return ""
 	}
 	err = json.Unmarshal(body, result)
-	fmt.Println(result)
+	fmt.Println(*result)
 	if err != nil {
 		log.Error.Println(err.Error())
 		return ""
@@ -81,4 +87,5 @@ func (jy JiYanAi) Distinguish(file *[]byte, typeId string) string {
 		return ""
 	}
 	return result.Data.Result
+	
 }

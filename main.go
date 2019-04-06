@@ -1,32 +1,16 @@
 package main
 
-import "encoding/json"
-import "fmt"
+import (
+	"time"
 
-func test(v interface{}) {
-	json.Unmarshal([]byte(`{"test": 4}`), v)
-}
+	"github.com/yqh231/Urezin/pool"
+)
 
-func test2(v *string) {
-	//a := "abc"
-	*v = "abc"
-}
-
-type ruby struct {
-	lang string
-}
-
-func test3(v *ruby) {
-	n := ruby{
-		"ruby",
-	}
-	v = &n
-}
+var Pool *pool.GoPool
 
 func main() {
-	v1 := ruby{
-		"en",
-	}
-	test3(&v1)
-	fmt.Println(v1)
+	untWallet := NewUntWallet()
+	Pool = pool.NewPool(1, 10 * time.Second)
+	go Pool.Run(untWallet)
+	Pool.RunTillRoutineShut()
 }
