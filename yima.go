@@ -25,21 +25,18 @@ func NewYiMa() *YiMaCli {
 func (ym *YiMaCli) Login(name, password string) {
 	var res string
 
-	reqCompose := NewReqCompose("GET", ym.url,
-		map[string]string{
-			"action":   "login",
-			"username": name,
-			"password": password,
-		})
-	resp, err := ym.client.Do(reqCompose.GetReq())
+	req := Requests()
+
+	resp, err := req.Get(ym.url, Params{"action": "loginIn", "name": name, "password": password})
 	if err != nil {
 		log.Error.Println(err.Error())
 		return
 	}
 	if resp != nil {
-		defer resp.Body.Close()
+		return
 	}
-	reqCompose.ResHandle(resp, &res)
+
+	res = resp.Text()
 	stringSlice := strings.Split(res, "|")
 	if stringSlice[0] != "success" {
 		log.Error.Printf("yi ma get token failed, details is %v", stringSlice[1])
@@ -51,27 +48,22 @@ func (ym *YiMaCli) Login(name, password string) {
 
 func (ym *YiMaCli) GetPhone(itemId, phone string) string {
 	var res string
-
-	params := map[string]string{
+	req := Requests()
+	params := Params{
 		"action": "getmobile",
-		"token":  ym.token,
+		"token": ym.token,
 		"itemid": itemId,
 	}
 	if phone != "" {
 		params["mobile"] = phone
 	}
-	reqCompose := NewReqCompose("GET", ym.url,
-		params)
-	resp, err := ym.client.Do(reqCompose.GetReq())
+
+	resp, err := req.Get(ym.url, params) 
 	if err != nil {
 		log.Error.Println(err.Error())
 		return ""
 	}
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-
-	reqCompose.ResHandle(resp, &res)
+	res = resp.Text()
 	stringSlice := strings.Split(res, "|")
 	if stringSlice[0] != "success" {
 		log.Error.Printf("yi ma get mobile failed, details is %v", stringSlice[1])
@@ -84,23 +76,14 @@ func (ym *YiMaCli) GetPhone(itemId, phone string) string {
 func (ym *YiMaCli) GetMessage(mobile, itemId, ifRelease string, callNum int) string {
 	var res string
 
-	reqCompose := NewReqCompose("GET", ym.url, map[string]string{
-		"action":  "getsms",
-		"token":   ym.token,
-		"itemid":  itemId,
-		"mobile":  mobile,
-		"release": ifRelease,
-	})
-	resp, err := ym.client.Do(reqCompose.GetReq())
+	req := Requests()
+	resp, err := req.Get(ym.url, Params{"action": "getsms", "token": ym.token, "itemid": itemId, "mobile": mobile, "release": ifRelease})
 	if err != nil {
 		log.Error.Println(err.Error())
 		return ""
 	}
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 
-	reqCompose.ResHandle(resp, &res)
+	res = resp.Text()
 	stringSlice := strings.Split(res, "|")
 	fmt.Println(res)
 	if !strings.HasPrefix(res, "success") && callNum < 20 {

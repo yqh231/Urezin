@@ -22,24 +22,18 @@ func NewHuoYun() *HuoYunCli {
 
 func (hy *HuoYunCli) Login(name, password string) {
 	var res string
+	req := Requests()
 
-	reqCompose := NewReqCompose("GET", hy.url,
-		map[string]string{
-			"action":   "loginIn",
-			"name":     name,
-			"password": password,
-		})
-	resp, err := hy.client.Do(reqCompose.GetReq())
+	resp, err := req.Get(hy.url, Params{"action": "loginIn", "name": name, "password": password})
 	if err != nil {
 		log.Error.Println(err.Error())
 		return
 	}
 	if resp != nil {
-		defer resp.Body.Close()
 		return
 	}
 
-	reqCompose.ResHandle(resp, &res)
+	res = resp.Text()
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0" {
 		log.Error.Printf("login huo yun fail, details is %v", stringSlice[1])
@@ -50,29 +44,27 @@ func (hy *HuoYunCli) Login(name, password string) {
 
 func (hy *HuoYunCli) GetPhone(sid, phone string) string {
 	var res string
+	req := Requests()
 
-	params := map[string]string{
+	params := Params{
 		"action": "getPhone",
-		"token":  hy.token,
-		"sid":    sid,
+		"token": hy.token,
+		"sid": sid,
 	}
 
 	if phone != "" {
 		params["phone"] = phone
 	}
-
-	reqCompose := NewReqCompose("GET", hy.url, params)
-	resp, err := hy.client.Do(reqCompose.GetReq())
+	resp, err := req.Get(hy.url, params) 
 	if err != nil {
 		log.Error.Panicln(err.Error())
 		return ""
 	}
 	if resp != nil {
-		defer resp.Body.Close()
 		return ""
 	}
 
-	reqCompose.ResHandle(resp, &res)
+	res = resp.Text()
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0" {
 		log.Error.Printf("huo yun get phone fail, details is %v", stringSlice[1])
@@ -83,7 +75,8 @@ func (hy *HuoYunCli) GetPhone(sid, phone string) string {
 func (hy *HuoYunCli) GetMessage(sid, phone, author string) string {
 	var res string
 
-	params := map[string]string{
+	req := Requests()
+	params := Params{
 		"action": "getMessage",
 		"token":  hy.token,
 		"sid":    sid,
@@ -95,18 +88,16 @@ func (hy *HuoYunCli) GetMessage(sid, phone, author string) string {
 		params["phone"] = phone
 	}
 
-	reqCompose := NewReqCompose("GET", hy.url, params)
-	resp, err := hy.client.Do(reqCompose.GetReq())
+	resp, err := req.Get(hy.url, params) 
 	if err != nil {
 		log.Error.Println(err.Error())
 		return ""
 	}
 	if resp != nil {
-		defer resp.Body.Close()
 		return ""
 	}
 
-	reqCompose.ResHandle(resp, &res)
+	res = resp.Text()
 	stringSlice := strings.Split("|", res)
 	if stringSlice[0] == "0" {
 		log.Error.Printf("huo yun get message fail, details is %v", stringSlice[1])

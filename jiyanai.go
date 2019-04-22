@@ -1,13 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/yqh231/Urezin/log"
@@ -17,7 +11,7 @@ type JiYanAi struct {
 	userName string
 	passWord string
 	url      string
-	client   *http.Client
+	fileName string
 	timeout  string
 }
 
@@ -34,49 +28,38 @@ func NewJiYan() *JiYanAi {
 		"yqh231",
 		"2316678",
 		"http://aiapi.c2567.com/api/create",
-		&http.Client{
-			Timeout: 60 * time.Second,
-		},
+		"",
 		"60",
 	}
 }
 
-func (jy JiYanAi) GetPicture(url string, headers map[string]string) *[]byte {
-	var res []byte
-	req := NewReqCompose("GET", url, nil)
-	if headers != nil{
-		req.SetHeader(headers)
-	}
-	resp, err := jy.client.Do(req.GetReq())
+func (jy *JiYanAi) GetPicture(url string, headers Header) error{
+	req := Requests()
+	resp, err := req.Get(url, headers)
 	if err != nil {
 		log.Error.Println(err.Error())
 		return nil
 	}
-	req.ResHandle(resp, &res)
-	return &res
+	fileName := fmt.Sprintf("/tmp/tm_%s.jpg", time.Now().String()) 
+	jy.fileName = fileName
+	return resp.SaveFile(fileName)
 }
 
 func (jy JiYanAi) Distinguish(file *[]byte, typeId string) string {
 	result := new(DistinguishRes)
-	params := map[string]io.Reader{
-		"image":    bytes.NewReader(*file),
-		"username": strings.NewReader(jy.userName),
-		"password": strings.NewReader(jy.passWord),
-		"timeout":  strings.NewReader(jy.timeout),
-		"typeid":   strings.NewReader(typeId),
+	req := Requests()
+	params := Datas{
+		"username": jy.userName,
+		"password": jy.passWord,
+		"timeout":  jy.timeout,
+		"typeid":   typeId,
 	}
-	resp, er := Upload(jy.client, jy.url, params)
+	resp, er := req.Post(jy.url, params, Files{"image": jy.fileName}) 
 	if er != nil {
 		log.Error.Println(er.Error())
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error.Println(err.Error())
-		return ""
-	}
-	err = json.Unmarshal(body, result)
-	fmt.Println(*result)
+	err := resp.Json(result)
 	if err != nil {
 		log.Error.Println(err.Error())
 		return ""
